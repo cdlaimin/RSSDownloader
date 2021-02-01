@@ -1,0 +1,33 @@
+ListenPort: 1202
+DownloadHttpProxy: http://192.168.50.252:20171
+RSSHubAddress: http://192.168.50.135:1200
+RSSProxyAddress: http://192.168.50.135:1201
+EveryTime: 30m
+
+# 这里订阅的RSS其实是 RSSProxy 中转的，这些 RSS 需要代理才能访问
+RSSProxyInfos:
+  DefaultDownloadRoot: .
+  RSSInfos:
+    # 这里的 Key 会直接作为下载文件夹
+    巫师财经:
+      # 相应 RSSProxy中 RSSInfos 的 key
+      RSSInfosName: 巫师财经
+      # 下载到那个文件夹
+      # DownloadRoot: ./somepath
+
+# 这里直接走的是自建的 RSSHub，默认无需走代理
+BiliBiliInfos:
+  DefaultDownloadRoot: .config.yaml
+  BiliBiliUserInfos:
+    # 这里的 Key 会直接作为下载文件夹
+    李永乐:
+      UserID: 9458053
+      # DownloadRoot: ./somepath
+    回形针PaperClip:
+      UserID: 258150656
+    柴知道:
+      UserID: 26798384
+    吟游诗人基德:
+      UserID: 510856133
+    讲解员河森堡:
+      UserID: 483884702
