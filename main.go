@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/allanpk716/rssdownloader/model"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/common/log"
@@ -61,9 +62,9 @@ func main() {
 }
 
 var (
-	configs Configs
-	rssProxyInfos RSSProxyInfos
-	biliBiliInfos BiliBiliInfos
+	configs model.Configs
+	rssProxyInfos model.RSSProxyInfos
+	biliBiliInfos model.BiliBiliInfos
 )
 
 const annieFileExtension = ".download"

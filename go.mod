@@ -1,4 +1,4 @@
-module github.com/allanpk716/RSSDownloader
+module github.com/allanpk716/rssdownloader
 
 go 1.14
 

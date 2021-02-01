@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"github.com/allanpk716/rssdownloader/model"
 	"github.com/bitfield/script"
 	"github.com/mmcdole/gofeed"
 	"github.com/prometheus/common/log"
@@ -15,7 +16,7 @@ import (
 	"time"
 )
 
-func OneDownload(nowDownloadRoot, nowFileName, downloadLink string, downloadInfo DownloadInfo) error {
+func OneDownload(nowDownloadRoot, nowFileName, downloadLink string, downloadInfo model.DownloadInfo) error {
 	// 设置代理有差异
 	var err error
 	var tmpCommand = ""
@@ -61,7 +62,7 @@ func OneDownload(nowDownloadRoot, nowFileName, downloadLink string, downloadInfo
 	return nil
 }
 
-func MainDownloader(configs Configs, rssProxyInfos RSSProxyInfos, biliBiliInfos BiliBiliInfos)  {
+func MainDownloader(configs model.Configs, rssProxyInfos model.RSSProxyInfos, biliBiliInfos model.BiliBiliInfos)  {
 	for _, oneRSSInfos := range rssProxyInfos.RSSInfos {
 		DownloadFromOneFeed(configs, oneRSSInfos)
 	}
@@ -71,28 +72,28 @@ func MainDownloader(configs Configs, rssProxyInfos RSSProxyInfos, biliBiliInfos 
 	}
 }
 
-func SelectDownloadInfo(rssInfo interface{}) (DownloadInfo, error) {
-	var downloadInfo DownloadInfo
+func SelectDownloadInfo(rssInfo interface{}) (model.DownloadInfo, error) {
+	var downloadInfo model.DownloadInfo
 	// TODO 后续新增的订阅类型，需要在这里新增对应的 Switch 语句
 	switch rssInfo.(type) {
-	case RSSInfo:
+	case model.RSSInfo:
 		// RSSProxyInfos
 		// http://127.0.0.1:1201/rss?key=巫师财经
-		downloadInfo = DownloadInfo{
-			FolderName: rssInfo.(RSSInfo).FolderName,
-			RSSUrl: configs.RSSProxyAddress + "/rss?key=" + rssInfo.(RSSInfo).RSSInfosName,
-			DownloadRoot: rssInfo.(RSSInfo).DownloadRoot,
-			UseProxy: rssInfo.(RSSInfo).UseProxy,
+		downloadInfo = model.DownloadInfo{
+			FolderName: rssInfo.(model.RSSInfo).FolderName,
+			RSSUrl: configs.RSSProxyAddress + "/rss?key=" + rssInfo.(model.RSSInfo).RSSInfosName,
+			DownloadRoot: rssInfo.(model.RSSInfo).DownloadRoot,
+			UseProxy: rssInfo.(model.RSSInfo).UseProxy,
 		}
 
-	case BiliBiliUserInfo:
+	case model.BiliBiliUserInfo:
 		// BiliBiliInfos
 		// http://192.168.50.135:1200/bilibili/user/video/258150656
-		downloadInfo = DownloadInfo{
-			FolderName: rssInfo.(BiliBiliUserInfo).FolderName,
-			RSSUrl: configs.RSSHubAddress + "/bilibili/user/video/" + rssInfo.(BiliBiliUserInfo).UserID,
-			DownloadRoot: rssInfo.(BiliBiliUserInfo).DownloadRoot,
-			UseProxy: rssInfo.(BiliBiliUserInfo).UseProxy,
+		downloadInfo = model.DownloadInfo{
+			FolderName: rssInfo.(model.BiliBiliUserInfo).FolderName,
+			RSSUrl: configs.RSSHubAddress + "/bilibili/user/video/" + rssInfo.(model.BiliBiliUserInfo).UserID,
+			DownloadRoot: rssInfo.(model.BiliBiliUserInfo).DownloadRoot,
+			UseProxy: rssInfo.(model.BiliBiliUserInfo).UseProxy,
 		}
 	default:
 		return downloadInfo, errors.New("RSS info type not support")
@@ -101,8 +102,8 @@ func SelectDownloadInfo(rssInfo interface{}) (DownloadInfo, error) {
 	return downloadInfo, nil
 }
 
-func DownloadFromOneFeed(configs Configs, rssInfo interface{}) {
-	var downloadInfo DownloadInfo
+func DownloadFromOneFeed(configs model.Configs, rssInfo interface{}) {
+	var downloadInfo model.DownloadInfo
 	var err error
 	downloadInfo, err = SelectDownloadInfo(rssInfo)
 	if err != nil {
@@ -125,7 +126,7 @@ func DownloadFromOneFeed(configs Configs, rssInfo interface{}) {
 	}
 }
 
-func StartDownload(item *gofeed.Item, downloadInfo DownloadInfo) {
+func StartDownload(item *gofeed.Item, downloadInfo model.DownloadInfo) {
 	// 还需要拼接具体某人的目录
 	var tmpDownloadPath string
 	if runtime.GOOS == "windows" {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"github.com/allanpk716/rssdownloader/model"
 	"github.com/spf13/viper"
 )
 
@@ -19,8 +20,8 @@ func InitConfigure() (*viper.Viper, error) {
 	return v, nil
 }
 
-func ViperConfig2Cache(config *viper.Viper, configs *Configs,
-	rssProxyInfos *RSSProxyInfos, biliBiliInfos *BiliBiliInfos) {
+func ViperConfig2Cache(config *viper.Viper, configs *model.Configs,
+	rssProxyInfos *model.RSSProxyInfos, biliBiliInfos *model.BiliBiliInfos) {
 	// ------------------------------------------------------------
 	// 基础配置信息
 	configs.ListenPort =  config.GetInt("ListenPort")
@@ -36,7 +37,7 @@ func ViperConfig2Cache(config *viper.Viper, configs *Configs,
 	rsshubInfos := config.GetStringMapString("RSSProxyInfos.RSSInfos")
 	// 巫师财经 ： 具体的内容
 	for k := range rsshubInfos {
-		rssInfo := RSSInfo{
+		rssInfo := model.RSSInfo{
 			FolderName: k,
 			RSSInfosName: config.GetString("RSSProxyInfos.RSSInfos." + k + ".RSSInfosName"),
 		}
@@ -65,7 +66,7 @@ func ViperConfig2Cache(config *viper.Viper, configs *Configs,
 	bilabialUserInfos := config.GetStringMapString("BiliBiliInfos.BiliBiliUserInfos")
 	// 李永乐 ： 具体的内容
 	for k := range bilabialUserInfos {
-		 biliUserInfo := BiliBiliUserInfo{
+		 biliUserInfo := model.BiliBiliUserInfo{
 			FolderName: k,
 			UserID: config.GetString("BiliBiliInfos.BiliBiliUserInfos." + k + ".UserID"),
 		}
@@ -89,44 +90,4 @@ func ViperConfig2Cache(config *viper.Viper, configs *Configs,
 	// ------------------------------------------------------------
 }
 
-type Configs struct {
-	ListenPort        int
-	DownloadHttpProxy string
-	RSSHubAddress     string
-	RSSProxyAddress   string
-	EveryTime         string
-	ReadRSSTimeOut    int
-}
 
-type RSSProxyInfos struct {
-	DefaultDownloadRoot string
-	DefaultUseProxy bool
-	RSSInfos []RSSInfo
-}
-
-type RSSInfo struct {
-	FolderName string
-	RSSInfosName string
-	DownloadRoot string
-	UseProxy bool
-}
-
-type BiliBiliInfos struct {
-	DefaultDownloadRoot string
-	DefaultUseProxy bool
-	BiliBiliUserInfos []BiliBiliUserInfo
-}
-
-type BiliBiliUserInfo struct {
-	FolderName string
-	UserID string
-	DownloadRoot string
-	UseProxy bool
-}
-
-type DownloadInfo struct {
-	FolderName string
-	RSSUrl string
-	DownloadRoot string
-	UseProxy bool
-}
