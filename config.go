@@ -2,7 +2,7 @@ package main
 
 import (
 	"errors"
-	"github.com/allanpk716/rssdownloader/model"
+	"github.com/allanpk716/rssdownloader.common/model"
 	"github.com/spf13/viper"
 )
 

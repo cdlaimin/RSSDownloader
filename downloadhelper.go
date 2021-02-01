@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"errors"
-	"github.com/allanpk716/rssdownloader/model"
+	"github.com/allanpk716/rssdownloader.common/model"
 	"github.com/bitfield/script"
 	"github.com/mmcdole/gofeed"
 	"github.com/prometheus/common/log"

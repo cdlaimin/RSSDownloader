@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/allanpk716/rssdownloader/model"
+	"github.com/allanpk716/rssdownloader.common/model"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/common/log"
@@ -62,7 +62,7 @@ func main() {
 }
 
 var (
-	configs model.Configs
+	configs       model.Configs
 	rssProxyInfos model.RSSProxyInfos
 	biliBiliInfos model.BiliBiliInfos
 )
