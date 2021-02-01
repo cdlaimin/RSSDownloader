@@ -1,4 +1,4 @@
-module unraidgitlab.0x12.xyz/homelab/RSSDownloader
+module github.com/allanpk716/RSSDownloader
 
 go 1.14
 
