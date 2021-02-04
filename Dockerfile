@@ -29,4 +29,4 @@ COPY --from=builder /homalab/buildspace/config.yaml.sample /app/config.yaml
 RUN chmod -R 777 /app
 EXPOSE 1200
 
-ENTRYPOINT ["/app/rssproxy"]
+ENTRYPOINT ["/app/rssdownloader"]
