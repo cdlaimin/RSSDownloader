@@ -6,7 +6,8 @@ EveryTime: 30m
 
 # 这里订阅的RSS其实是 RSSProxy 中转的，这些 RSS 需要代理才能访问
 RSSProxyInfos:
-  DefaultDownloadRoot: .
+  DefaultDownloaderName: Youtube-dl
+  DefaultDownloadRoot: /downloads
   RSSInfos:
     # 这里的 Key 会直接作为下载文件夹
     巫师财经:
@@ -17,7 +18,8 @@ RSSProxyInfos:
 
 # 这里直接走的是自建的 RSSHub，默认无需走代理
 BiliBiliInfos:
-  DefaultDownloadRoot: .config.yaml
+  DefaultDownloaderName: Youtube-dl
+  DefaultDownloadRoot: /downloads
   BiliBiliUserInfos:
     # 这里的 Key 会直接作为下载文件夹
     李永乐:
@@ -31,3 +33,16 @@ BiliBiliInfos:
       UserID: 510856133
     讲解员河森堡:
       UserID: 483884702
+    沙盘上的战争:
+      UserID: 612194373
+
+DockerDownloaderInfos:
+  Youtube-dl:
+    DockSSHAddress: 192.168.50.135:22
+    DockerUserName: dockeruser
+    DockerPassword: password
+    UpdateCommands:
+      - docker pull qmcgaw/youtube-dl-alpine
+      - docker run --rm -e LOG=no -e AUTOUPDATE=yes $ContainerProxy$ -v /mnt/user/appdata/rssdownloader:/downloads -v /mnt/user/appdata/rssdownloader/youtube-dl:/usr/local/bin/youtube-dl qmcgaw/youtube-dl-alpine
+    DownloadCommands:
+      - docker run --rm -e LOG=no -v $PhysicalMachineDownloadRootPath$:/downloads -v /mnt/user/appdata/rssdownloader/youtube-dl:/usr/local/bin/youtube-dl qmcgaw/youtube-dl-alpine $httpadd$ $downloadURL$ -o "/downloads/$nowFileName$.%(ext)s"

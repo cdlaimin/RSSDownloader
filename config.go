@@ -21,7 +21,8 @@ func InitConfigure() (*viper.Viper, error) {
 }
 
 func ViperConfig2Cache(config *viper.Viper, configs *model.Configs,
-	rssProxyInfos *model.RSSProxyInfos, biliBiliInfos *model.BiliBiliInfos) {
+	rssProxyInfos *model.RSSProxyInfos, biliBiliInfos *model.BiliBiliInfos,
+	dockerDownloaderInfos map[string]model.DockerDownloaderInfo) {
 	// ------------------------------------------------------------
 	// 基础配置信息
 	configs.ListenPort =  config.GetInt("ListenPort")
@@ -32,6 +33,7 @@ func ViperConfig2Cache(config *viper.Viper, configs *model.Configs,
 	configs.ReadRSSTimeOut =  config.GetInt("ReadRSSTimeOut")
 	// ------------------------------------------------------------
 	// 读取需要走 RSSProxy 的信息
+	rssProxyInfos.DefaultDownloaderName = config.GetString("RSSProxyInfos.DefaultDownloaderName")
 	rssProxyInfos.DefaultDownloadRoot = config.GetString("RSSProxyInfos.DefaultDownloadRoot")
 	rssProxyInfos.DefaultUseProxy = config.GetBool("RSSProxyInfos.DefaultUseProxy")
 	rsshubInfos := config.GetStringMapString("RSSProxyInfos.RSSInfos")
@@ -61,6 +63,7 @@ func ViperConfig2Cache(config *viper.Viper, configs *model.Configs,
 	}
 	// ------------------------------------------------------------
 	// 读取 BiliBiliInfos 的 User 信息
+	biliBiliInfos.DefaultDownloaderName = config.GetString("BiliBiliInfos.DefaultDownloaderName")
 	biliBiliInfos.DefaultDownloadRoot = config.GetString("BiliBiliInfos.DefaultDownloadRoot")
 	biliBiliInfos.DefaultUseProxy = config.GetBool("BiliBiliInfos.DefaultUseProxy")
 	bilabialUserInfos := config.GetStringMapString("BiliBiliInfos.BiliBiliUserInfos")
@@ -86,6 +89,19 @@ func ViperConfig2Cache(config *viper.Viper, configs *model.Configs,
 		}
 
 		biliBiliInfos.BiliBiliUserInfos = append(biliBiliInfos.BiliBiliUserInfos, biliUserInfo)
+	}
+	// ------------------------------------------------------------
+	// 读取 DownloaderInfo 的信息
+	tmpdockerDownloaderInfos := config.GetStringMapString("DockerDownloaderInfos")
+	for k := range tmpdockerDownloaderInfos {
+		var downloaderInfo model.DockerDownloaderInfo
+		downloaderInfo.DockSSHAddress = config.GetString("DockerDownloaderInfos."+ k +".DockSSHAddress")
+		downloaderInfo.DockerUserName = config.GetString("DockerDownloaderInfos."+ k +".DockerUserName")
+		downloaderInfo.DockerPassword = config.GetString("DockerDownloaderInfos."+ k +".DockerPassword")
+		downloaderInfo.Name = k
+		downloaderInfo.UpdateCommands = config.GetStringSlice("DockerDownloaderInfos."+ k +".UpdateCommands")
+		downloaderInfo.DownloadCommands = config.GetStringSlice("DockerDownloaderInfos."+ k +".DownloadCommands")
+		dockerDownloaderInfos[k] = downloaderInfo
 	}
 	// ------------------------------------------------------------
 }

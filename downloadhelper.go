@@ -7,66 +7,124 @@ import (
 	"github.com/bitfield/script"
 	"github.com/mmcdole/gofeed"
 	"github.com/prometheus/common/log"
+	"golang.org/x/crypto/ssh"
 	"os"
-	"os/exec"
 	"path"
 	"regexp"
-	"runtime"
 	"strings"
 	"time"
 )
 
-func OneDownload(nowDownloadRoot, nowFileName, downloadLink string, downloadInfo model.DownloadInfo) error {
-	// 设置代理有差异
+func UpdateDockerDownloader(configs model.Configs, dockerDownloaderInfo model.DockerDownloaderInfo) (string, error) {
+
 	var err error
-	var tmpCommand = ""
-	var setProxy = ""
-	var unSetProxy = ""
-	switch runtime.GOOS {
-	case "windows":
-		setProxy = "$env:http_proxy=" + "\"" +configs.DownloadHttpProxy + "\""
-		unSetProxy = "$env:http_proxy=\"\""
-	default:
-		setProxy = "http_proxy=" + configs.DownloadHttpProxy
-		unSetProxy = "http_proxy="
+	config := &ssh.ClientConfig{
+		Timeout:         time.Second,
+		User:            dockerDownloaderInfo.DockerUserName,
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
-	if downloadInfo.UseProxy == true {
-		tmpCommand = setProxy
-	} else {
-		tmpCommand = unSetProxy
-	}
-	// 设置代理
-	cmd := exec.Command(tmpCommand)
-	if runtime.GOOS == "windows" {
-		cmd = exec.Command("powershell", tmpCommand)
-	}
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err = cmd.Run()
+	config.Auth = []ssh.AuthMethod{ssh.Password(dockerDownloaderInfo.DockerPassword)}
+	sshClient, err := ssh.Dial("tcp", dockerDownloaderInfo.DockSSHAddress, config)
 	if err != nil {
-		return err
+		return "", err
 	}
-	// 开始下载
-	tmpCommand = "annie -o " + nowDownloadRoot + " -O \"" + nowFileName +  "\" " + "\"" + downloadLink + "\""
-	cmd = exec.Command(tmpCommand)
-	if runtime.GOOS == "windows" {
-		cmd = exec.Command("powershell", tmpCommand)
-	}
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err = cmd.Run()
+	defer sshClient.Close()
+
+	session, err := sshClient.NewSession()
 	if err != nil {
-		return err
+		return "", err
+	}
+	defer session.Close()
+
+	assemblyCommand := ""
+	for _, oneCommand := range dockerDownloaderInfo.UpdateCommands {
+		// 替换关键信息
+		tmpCommand := oneCommand
+		ContainerProxy := "-e HTTP_PROXY=" + configs.DownloadHttpProxy
+		tmpCommand = strings.ReplaceAll(tmpCommand, ConstContainerProxy, ContainerProxy)
+
+		assemblyCommand += tmpCommand
+		assemblyCommand += ";"
 	}
 
-	return nil
+	combo, err := session.CombinedOutput(assemblyCommand)
+	if err != nil {
+		return string(combo), err
+	}
+
+	return "", nil
+}
+
+func OneDownload(nowFileName, downloadURL string, downloadInfo model.DownloadInfo,
+	dockerDownloaderInfo model.DockerDownloaderInfo) (string, error) {
+	var err error
+	config := &ssh.ClientConfig{
+		Timeout:         time.Second,
+		User:            dockerDownloaderInfo.DockerUserName,
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+	}
+	config.Auth = []ssh.AuthMethod{ssh.Password(dockerDownloaderInfo.DockerPassword)}
+	sshClient, err := ssh.Dial("tcp", dockerDownloaderInfo.DockSSHAddress, config)
+	if err != nil {
+		return "", err
+	}
+	defer sshClient.Close()
+
+	session, err := sshClient.NewSession()
+	if err != nil {
+		return "", err
+	}
+	defer session.Close()
+
+	// TODO 先实现 Youtube-dl 的功能，后续需分析这个部分，支持多种 Docker 下载器
+	assemblyCommand := ""
+	for _, oneCommand := range dockerDownloaderInfo.DownloadCommands {
+		// 替换关键信息
+		nowDesPath := path.Join(downloadInfo.DownloadRoot, downloadInfo.FolderName)
+		tmpCommand := strings.ReplaceAll(oneCommand, ConstPhysicalmachinedownloadrootpath, nowDesPath)
+
+		httpAdd := "--proxy=" + downloadInfo.DownloadHttpProxy
+		if downloadInfo.UseProxy == false {
+			httpAdd = ""
+		}
+		tmpCommand = strings.ReplaceAll(tmpCommand, ConstHttpadd, httpAdd)
+		tmpCommand = strings.ReplaceAll(tmpCommand, ConstDownloadurl, downloadURL)
+		tmpCommand = strings.ReplaceAll(tmpCommand, ConstNowfilename, nowFileName)
+
+		assemblyCommand += tmpCommand
+		assemblyCommand += ";"
+	}
+
+	combo, err := session.CombinedOutput(assemblyCommand)
+	if err != nil {
+		return string(combo), err
+	}
+
+	return "", nil
 }
 
 func MainDownloader(configs model.Configs, rssProxyInfos model.RSSProxyInfos, biliBiliInfos model.BiliBiliInfos)  {
+
+	// 先进行 downloader 的统一更新
+	log.Infoln("Docker Downloader Update Start")
+	for _, dockerDownloaderInfo := range dockerDownloaderInfos {
+		log.Infoln("Update Docker Downloader:", dockerDownloaderInfo.Name, "Start")
+		outstring, err := UpdateDockerDownloader(configs, dockerDownloaderInfo)
+		if err != nil {
+			log.Errorln("UpdateDockerDownloader OutString:", outstring)
+			log.Errorln("UpdateDockerDownloader:", err)
+			continue
+		}
+		log.Infoln("Update Docker Downloader:", dockerDownloaderInfo.Name, "End")
+	}
+	log.Infoln("Docker Downloader Update End")
+
+	log.Infoln("Download RSS From RSSProxyInfos")
 	for _, oneRSSInfos := range rssProxyInfos.RSSInfos {
 		DownloadFromOneFeed(configs, oneRSSInfos)
 	}
 
+	log.Infoln("Download RSS From BiliBiliInfos")
 	for _, oneBiliBiliUserInfos := range biliBiliInfos.BiliBiliUserInfos {
 		DownloadFromOneFeed(configs, oneBiliBiliUserInfos)
 	}
@@ -84,6 +142,7 @@ func SelectDownloadInfo(rssInfo interface{}) (model.DownloadInfo, error) {
 			RSSUrl: configs.RSSProxyAddress + "/rss?key=" + rssInfo.(model.RSSInfo).RSSInfosName,
 			DownloadRoot: rssInfo.(model.RSSInfo).DownloadRoot,
 			UseProxy: rssInfo.(model.RSSInfo).UseProxy,
+			DownloaderName: rssProxyInfos.DefaultDownloaderName,
 		}
 
 	case model.BiliBiliUserInfo:
@@ -94,6 +153,7 @@ func SelectDownloadInfo(rssInfo interface{}) (model.DownloadInfo, error) {
 			RSSUrl: configs.RSSHubAddress + "/bilibili/user/video/" + rssInfo.(model.BiliBiliUserInfo).UserID,
 			DownloadRoot: rssInfo.(model.BiliBiliUserInfo).DownloadRoot,
 			UseProxy: rssInfo.(model.BiliBiliUserInfo).UseProxy,
+			DownloaderName: biliBiliInfos.DefaultDownloaderName,
 		}
 	default:
 		return downloadInfo, errors.New("RSS info type not support")
@@ -110,6 +170,8 @@ func DownloadFromOneFeed(configs model.Configs, rssInfo interface{}) {
 		log.Errorln("SelectDownloadInfo:", err, rssInfo)
 		return
 	}
+	// 设置代理信息
+	downloadInfo.DownloadHttpProxy = configs.DownloadHttpProxy
 	// 解析 RSS 信息
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(configs.ReadRSSTimeOut) * time.Second)
 	defer cancel()
@@ -129,11 +191,8 @@ func DownloadFromOneFeed(configs model.Configs, rssInfo interface{}) {
 func StartDownload(item *gofeed.Item, downloadInfo model.DownloadInfo) {
 	// 还需要拼接具体某人的目录
 	var tmpDownloadPath string
-	if runtime.GOOS == "windows" {
-		tmpDownloadPath = downloadInfo.DownloadRoot + "\\\\" +downloadInfo.FolderName
-	} else {
-		tmpDownloadPath = path.Join(downloadInfo.DownloadRoot, downloadInfo.FolderName)
-	}
+	tmpDownloadPath = path.Join(downloadInfo.DownloadRoot, downloadInfo.FolderName)
+	// 如果目录不存在则创建
 	if Exists(tmpDownloadPath) == false {
 		err := os.MkdirAll(tmpDownloadPath, os.ModePerm)
 		if err != nil {
@@ -141,7 +200,7 @@ func StartDownload(item *gofeed.Item, downloadInfo model.DownloadInfo) {
 			return
 		}
 	}
-	// 当前路径下面的是否有下载好的文件，或者是否有 .download 的正在下载的文件
+	// 当前路径下面的是否有下载好的文件，或者是否有 .part 的正在下载的文件
 	nowVideoName := item.PublishedParsed.Format("2006-01-02") + "_" + item.Title
 	nowVideoName = strings.TrimSpace(nowVideoName)
 	// 去除 Windows 下不允许出现在文件名中的特殊字符
@@ -165,7 +224,7 @@ func StartDownload(item *gofeed.Item, downloadInfo model.DownloadInfo) {
 		stringSlice := strings.Split(outName, "\n")
 		if len(stringSlice) == 1 {
 			// 只有一个文件的时候，需要判断后缀名，如果是  .download 那么就需要继续下载
-			if path.Ext(outName) == annieFileExtension {
+			if path.Ext(outName) == ConstYoutudlfileextension {
 				// 继续下载
 			} else {
 				// 跳出，无需下载
@@ -179,11 +238,23 @@ func StartDownload(item *gofeed.Item, downloadInfo model.DownloadInfo) {
 
 	log.Infoln("Download", nowVideoName, "Start")
 	// 如果为空，则没找到那么就可以下载，注意，这里是单线程下载，所以用阻塞调用方法
-	// 这里有个梗，annie 已经无法正常下载 youtube 的视频了···
-	err = OneDownload(tmpDownloadPath, nowVideoName, item.Link, downloadInfo)
+	nowDockerDownloader, find := dockerDownloaderInfos[strings.ToLower(downloadInfo.DownloaderName)]
+	if find == false {
+		log.Errorln("DockerDownloaderInfos", downloadInfo.DownloaderName, "Not Found")
+		return
+	}
+	outstring, err := OneDownload(nowVideoName, item.Link, downloadInfo, nowDockerDownloader)
 	if err != nil {
+		log.Errorln("OneDownload OutString:", outstring)
 		log.Errorln("OneDownload:", err)
 		return
 	}
 	log.Infoln("Download", nowVideoName, "End")
 }
+
+const ConstYoutudlfileextension = ".part"
+const ConstPhysicalmachinedownloadrootpath = "$PhysicalMachineDownloadRootPath$"
+const ConstHttpadd = "$httpadd$"
+const ConstContainerProxy = "$ContainerProxy$"
+const ConstDownloadurl = "$downloadURL$"
+const ConstNowfilename = "$nowFileName$"

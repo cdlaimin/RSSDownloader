@@ -23,7 +23,8 @@ func main() {
 		return
 	}
 	// 缓存配置
-	ViperConfig2Cache(vipConfig, &configs, &rssProxyInfos, &biliBiliInfos)
+	dockerDownloaderInfos = make(map[string]model.DockerDownloaderInfo)
+	ViperConfig2Cache(vipConfig, &configs, &rssProxyInfos, &biliBiliInfos, dockerDownloaderInfos)
 	// -------------------------------------------------------------
 	// 开启一个协程做定时的更新
 	// 这里直接使用 cron ，他会自动开启一个协程
@@ -62,9 +63,8 @@ func main() {
 }
 
 var (
-	configs       model.Configs
-	rssProxyInfos model.RSSProxyInfos
-	biliBiliInfos model.BiliBiliInfos
+	configs               model.Configs
+	rssProxyInfos         model.RSSProxyInfos
+	biliBiliInfos         model.BiliBiliInfos
+	dockerDownloaderInfos map[string]model.DockerDownloaderInfo
 )
-
-const annieFileExtension = ".download"
