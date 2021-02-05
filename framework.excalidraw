@@ -35,8 +35,8 @@
     },
     {
       "type": "text",
-      "version": 143,
-      "versionNonce": 78603447,
+      "version": 147,
+      "versionNonce": 2010920793,
       "isDeleted": false,
       "id": "eH7ZW3TBrQ3PTJUODuZ50",
       "fillStyle": "solid",
@@ -59,7 +59,7 @@
       "boundElementIds": [],
       "fontSize": 20,
       "fontFamily": 3,
-      "text": "RRSProxy",
+      "text": "RSSProxy",
       "baseline": 20,
       "textAlign": "center",
       "verticalAlign": "middle"
