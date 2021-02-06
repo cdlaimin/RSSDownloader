@@ -33,7 +33,16 @@
         * [downloadURL](#downloadurl)
         * [nowFileName](#nowfilename)
     + [Docker 部署](#docker---)
+      - [1. 部署用的 [docker-compose.yaml](https://github.com/allanpk716/RSSDownloader/blob/master/DockerThings/docker-compose.yaml)](#1-------docker-composeyaml--https---githubcom-allanpk716-rssdownloader-blob-master-dockerthings-docker-composeyaml-)
+      - [2. RSSProxy 的 [Config.yaml](https://github.com/allanpk716/RSSDownloader/blob/master/DockerThings/rssproxy-config.yaml)](#2-rssproxy----configyaml--https---githubcom-allanpk716-rssdownloader-blob-master-dockerthings-rssproxy-configyaml-)
+      - [3. RSSDownloader 的 [Config.yaml](https://github.com/allanpk716/RSSDownloader/blob/master/DockerThings/rssdownloader-config.yaml)](#3-rssdownloader----configyaml--https---githubcom-allanpk716-rssdownloader-blob-master-dockerthings-rssdownloader-configyaml-)
+      - [4.下载 [youtube-dl](https://github.com/ytdl-org/youtube-dl/releases)](#4----youtube-dl--https---githubcom-ytdl-org-youtube-dl-releases-)
+  * [风险](#--)
+  * [可能遇到的问题](#-------)
+    + [1. 部分模块失效导致无法正常使用](#1---------------)
+    + [2. 代理问题](#2-----)
   * [项目规划、进度](#-------)
+  * [更新记录](#----)
   * [感谢](#--)
 
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
