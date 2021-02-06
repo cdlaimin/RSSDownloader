@@ -1,0 +1,7 @@
+ListenPort: 1200
+HttpProxy: http://192.168.50.252:20171
+EveryTime: 4h
+
+RSSInfos:
+  巫师财经: https://rsshub.app/youtube/channel/UC55ahPQ7m5iJdVWcOfmuE6g
+

@@ -294,7 +294,13 @@ OutSideAPPOrFolderLocation:
 
 ### Docker 部署
 
-参考以下的 docker-compose
+可以参考 RSSDownloader 项目中 DockerThings 中的几个文件。
+
+下面给出的几个文件都是以物理机 IP 192.168.50.135 举例。
+
+#### 部署用的 docker-compose.yaml
+
+这里的 RSSHub 其实就是自行部署的 Selfhost 。如果你已经部署有了，那么就无需再整一个出来。如果不想自己部署一个，那么就用官方的 RSSHub，效果嘛，自行判断。
 
 ```yaml
 version: "3"
@@ -306,7 +312,96 @@ services:
       - 1202:1200
     volumes:
       - /mnt/user/appdata/rssdownloader/config.yaml:/app/config.yaml
+  service_rssproxy:
+    image: allanpk716/rssproxy:latest
+    container_name: rssproxy
+    ports:
+      - 1201:1200
+    volumes:
+      - /mnt/user/appdata/rssproxy/config.yaml:/app/config.yaml
+  service_rsshub:
+    image: diygod/rsshub:latest
+    container_name: rsshub
+    ports:
+      - 1200:1200
+    environment:
+      - TZ=Asia/Shanghai
 ```
+
+#### RSSProxy 的 Config.yaml
+
+```yaml
+ListenPort: 1200
+HttpProxy: http://192.168.50.252:20171
+EveryTime: 4h
+
+RSSInfos:
+  巫师财经: https://rsshub.app/youtube/channel/UC55ahPQ7m5iJdVWcOfmuE6g
+```
+
+#### RSSDownloader 的 Config.yaml
+
+```yaml
+ListenPort: 1200
+DownloadHttpProxy: http://192.168.50.252:20171
+RSSHubAddress: http://192.168.50.135:1200
+RSSProxyAddress: http://192.168.50.135:1201
+ReadRSSTimeOut: 30
+EveryTime: 4h
+
+# 这里订阅的RSS其实是 RSSProxy 中转的，这些 RSS 需要代理才能访问
+RSSProxyInfos:
+  DefaultDownloaderName: Youtube-dl
+  DefaultDownloadRoot: /mnt/remotes/Video/科普
+  # 使用代理下载
+  DefaultUseProxy: true
+  RSSInfos:
+    巫师财经:
+      # 相应 RSSProxy中 RSSInfos 的 key
+      RSSInfosName: 巫师财经
+
+# 这里直接走的是自建的 RSSHub，默认无需走代理
+BiliBiliInfos:
+  DefaultDownloaderName: Youtube-dl
+  DefaultDownloadRoot: /mnt/remotes/Video/科普
+  # 使用代理下载
+  DefaultUseProxy: false
+  BiliBiliUserInfos:
+    # 这里的 Key 会直接作为下载文件夹
+    李永乐:
+      UserID: 9458053
+    回形针PaperClip:
+      UserID: 258150656
+    柴知道:
+      UserID: 26798384
+    吟游诗人基德:
+      UserID: 510856133
+    讲解员河森堡:
+      UserID: 483884702
+    沙盘上的战争:
+      UserID: 612194373
+
+DockerDownloaderInfos:
+  Youtube-dl:
+    DockSSHAddress: 192.168.50.135:22
+    DockerUserName: dockeruser
+    DockerPassword: password
+    OutSideAPPOrFolderLocation:
+      - /mnt/user/appdata/rssdownloader/youtube-dl
+    UpdateCommands:
+      - docker pull qmcgaw/youtube-dl-alpine
+      - docker run --rm --name=youtube-dl-runner -e LOG=no -e AUTOUPDATE=yes $ContainerProxy$ -v $PhysicalMachineDownloadRootPath$:/downloads -v $OutSideAPPOrFolderLocation0$:/usr/local/bin/youtube-dl qmcgaw/youtube-dl-alpine
+    DownloadCommands:
+      - docker run --rm --name=youtube-dl-runner -e LOG=no -v $PhysicalMachineDownloadRootPath$:/downloads -v $OutSideAPPOrFolderLocation0$:/usr/local/bin/youtube-dl qmcgaw/youtube-dl-alpine --proxy=$httpadd$ $downloadURL$ -o "/downloads/$nowFileName$.%(ext)s"
+```
+
+以上是默认的配置，下图会标记出你需要改的地方。这个就是根据你的物理机 **IP** 以及**存储路径**来调整了。
+
+![RSSDownloader-Setting-modify](Pics/RSSDownloader-Setting-modify.png)
+
+[youtube-dl](https://github.com/ytdl-org/youtube-dl/releases) 这个文件需要自己也下载好，不然 youtube-dl-docker 启动后会提示找不到文件的。
+
+![youtube-dl-download](Pics/youtube-dl-download.png)
 
 ## 项目规划、进度
 

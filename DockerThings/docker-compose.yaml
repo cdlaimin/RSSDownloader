@@ -1,0 +1,23 @@
+version: "3"
+services:
+  service_rssdownloader:
+    image: allanpk716/rssdownloader:latest
+    container_name: rssdownloader
+    ports:
+      - 1202:1200
+    volumes:
+      - /mnt/user/appdata/rssdownloader/config.yaml:/app/config.yaml
+  service_rssproxy:
+    image: allanpk716/rssproxy:latest
+    container_name: rssproxy
+    ports:
+      - 1201:1200
+    volumes:
+      - /mnt/user/appdata/rssproxy/config.yaml:/app/config.yaml
+  service_rsshub:
+    image: diygod/rsshub:latest
+    container_name: rsshub
+    ports:
+      - 1200:1200
+    environment:
+      - TZ=Asia/Shanghai
