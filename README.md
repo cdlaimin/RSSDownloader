@@ -111,13 +111,15 @@ Auther/2021-02-05_Title.mp4
 * Youtube 类型的需要代理下载，走 RSSProxy 代理
 * BiliBili 无需代理下载，直接用 RSSHub 订阅
 
+如果想快速尝鲜，那么就直接跳到 [Docker 部署](###Docker 部署)
+
 ### RSSProxy 设置
 
 默认是添加的所有都走代理，所以如果不走代理的就不用在这设置。
 
 RSSHub 的使用请去看对应的官网文档。
 
-### ![RSSProxy-Setting](Pics/RSSProxy-Setting.png)
+### <img src="Pics/RSSProxy-Setting.png" alt="RSSProxy-Setting" style="zoom:50%;" />
 
 建议看 [RSSProxy](https://github.com/allanpk716/RSSProxy) 的文档···后续会慢慢补···
 
@@ -129,7 +131,7 @@ RSSHub 的使用请去看对应的官网文档。
 
 基本的配置信息如下图：
 
-![RSSDownloader-Setting](Pics/RSSDownloader-Setting.png)
+<img src="Pics/RSSDownloader-Setting.png" alt="RSSDownloader-Setting" style="zoom:50%;" />
 
 ##### ListenPort
 
@@ -159,7 +161,7 @@ RSSProxy 的地址
 
 这个需要配合着  [RSSProxy 设置](###RSSProxy 设置)  的设置信息来设置。
 
-![RSSDownloader-Setting-RSSProxyInfo](Pics/RSSDownloader-Setting-RSSProxyInfo.png)
+<img src="Pics/RSSDownloader-Setting-RSSProxyInfo.png" alt="RSSDownloader-Setting-RSSProxyInfo" style="zoom:50%;" />
 
 ##### DefaultDownloaderName
 
@@ -187,7 +189,7 @@ RSSProxy 的地址
 
 这里直接走的是自建的 RSSHub，默认无需走代理。如果你想走代理，那么就 DefaultUseProxy: true
 
-![RSSDownloader-Setting-BiliBiliInfo](Pics/RSSDownloader-Setting-BiliBiliInfo.png)
+<img src="Pics/RSSDownloader-Setting-BiliBiliInfo.png" alt="RSSDownloader-Setting-BiliBiliInfo" style="zoom:50%;" />
 
 ##### DefaultDownloaderName
 
@@ -294,11 +296,13 @@ OutSideAPPOrFolderLocation:
 
 ### Docker 部署
 
-可以参考 RSSDownloader 项目中 DockerThings 中的几个文件。
+> 如果你一开始就跳到这里来看了，那么理想情况，你根据下面的提示修改基本的信息是能够直接跑起来的。如果你想知道这些设置参数有啥子用，那么建议你把上面的如何使用给看了，看不懂的话，一定是我描述的问题，不是你的问题，希望提 [ISSUS](https://github.com/allanpk716/RSSDownloader/issues) 帮后续人的能看懂（逃。
 
-下面给出的几个文件都是以物理机 IP 192.168.50.135 举例。
+可以参考 RSSDownloader 项目中 [DockerThings](https://github.com/allanpk716/RSSDownloader/tree/master/DockerThings) 中的几个文件。
 
-#### 部署用的 docker-compose.yaml
+下面给出的几个文件都是以物理机 IP <u>192.168.50.135</u> 举例。
+
+#### 1. 部署用的 [docker-compose.yaml](https://github.com/allanpk716/RSSDownloader/blob/master/DockerThings/docker-compose.yaml)
 
 这里的 RSSHub 其实就是自行部署的 Selfhost 。如果你已经部署有了，那么就无需再整一个出来。如果不想自己部署一个，那么就用官方的 RSSHub，效果嘛，自行判断。
 
@@ -328,7 +332,7 @@ services:
       - TZ=Asia/Shanghai
 ```
 
-#### RSSProxy 的 Config.yaml
+#### 2. RSSProxy 的 [Config.yaml](https://github.com/allanpk716/RSSDownloader/blob/master/DockerThings/rssproxy-config.yaml)
 
 ```yaml
 ListenPort: 1200
@@ -339,7 +343,7 @@ RSSInfos:
   巫师财经: https://rsshub.app/youtube/channel/UC55ahPQ7m5iJdVWcOfmuE6g
 ```
 
-#### RSSDownloader 的 Config.yaml
+#### 3. RSSDownloader 的 [Config.yaml](https://github.com/allanpk716/RSSDownloader/blob/master/DockerThings/rssdownloader-config.yaml)
 
 ```yaml
 ListenPort: 1200
@@ -399,15 +403,50 @@ DockerDownloaderInfos:
 
 ![RSSDownloader-Setting-modify](Pics/RSSDownloader-Setting-modify.png)
 
-[youtube-dl](https://github.com/ytdl-org/youtube-dl/releases) 这个文件需要自己也下载好，不然 youtube-dl-docker 启动后会提示找不到文件的。
+#### 4.下载 [youtube-dl](https://github.com/ytdl-org/youtube-dl/releases)
 
-![youtube-dl-download](Pics/youtube-dl-download.png)
+[youtube-dl](https://github.com/ytdl-org/youtube-dl/releases) 这个文件需要自己也下载好，不然 youtube-dl-docker 启动后会提示找不到文件的。放到的目录需要与你设置的 RSSDownloader -- config.yaml -- DockerDownloaderInfos -- Youtube-dl -- OutSideAPPOrFolderLocation
+
+```yaml
+   - /mnt/user/appdata/rssdownloader/youtube-dl
+```
+
+一定要注意，这个位置放对，也写对。后续自动更新会根据这里来更改的。
+
+<img src="Pics/youtube-dl-download.png" alt="youtube-dl-download" style="zoom:50%;" />
+
+## 风险
+
+从项目的结构来看，是使用了 docker 去启动 docker 的方式来做到的，所以用到了 ssh 去操作你的 docker，风险你懂的，一定是在内网玩，别暴露到外网哈。
+
+## 可能遇到的问题
+
+### 1. 部分模块失效导致无法正常使用
+
+本系统引用了基础外部的库，如果他们针对相应的网站更新了，那么一般就无法正确的获取 RSS 信息，或者正确去下载了。如果发现了，希望能提 [ISSUS ](https://github.com/allanpk716/RSSDownloader/issues)。
+
+### 2. 代理问题
+
+本项目主要目标是在国内使用，所以代理是必须的。如果你的代理不稳定，这个项目是没法解决的···暂时不想整公用代理池，因为这个你可以自行解决。
 
 ## 项目规划、进度
 
 详细见。Project：[RSSDownloadHub](https://github.com/users/allanpk716/projects/1)
 
+不排除如果没有新的个人需求，不会进行重构（主要是懒，写文档很累···）
+
+## 更新记录
+
+> 本来是设置了 docker hub 的自动根据 tag 制作镜像的，但是···配置没动过，第三次 tag push 上去发现没得反应，只能整一个手动根据 master 分支输出 latest ···
+>
+> 所以对应的 tag 没用上，直接用 latest 来获取吧···
+
+* 2021年2月6日 -- tag:v0.0.3 -- 支持 docker-compose 版本
+
 ## 感谢
 
 * [youtube-dl](https://github.com/ytdl-org/youtube-dl)
 * [youtube-dl docker](https://hub.docker.com/r/qmcgaw/youtube-dl-alpine/)
+* [instafeed](https://github.com/falzm/instafeed)
+* [goinsta](https://github.com/ahmdrz/goinsta)
+* [twitter2rss](https://github.com/n0madic/twitter2rss)
