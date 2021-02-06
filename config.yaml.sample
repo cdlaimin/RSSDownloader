@@ -1,30 +1,31 @@
-ListenPort: 1202
+ListenPort: 1200
 DownloadHttpProxy: http://192.168.50.252:20171
 RSSHubAddress: http://192.168.50.135:1200
 RSSProxyAddress: http://192.168.50.135:1201
-EveryTime: 30m
+ReadRSSTimeOut: 30
+EveryTime: 4h
 
 # 这里订阅的RSS其实是 RSSProxy 中转的，这些 RSS 需要代理才能访问
 RSSProxyInfos:
   DefaultDownloaderName: Youtube-dl
-  DefaultDownloadRoot: /downloads
+  DefaultDownloadRoot: /mnt/remotes/Video/科普
+  # 使用代理下载
+  DefaultUseProxy: true
   RSSInfos:
-    # 这里的 Key 会直接作为下载文件夹
     巫师财经:
       # 相应 RSSProxy中 RSSInfos 的 key
       RSSInfosName: 巫师财经
-      # 下载到那个文件夹
-      # DownloadRoot: ./somepath
 
 # 这里直接走的是自建的 RSSHub，默认无需走代理
 BiliBiliInfos:
   DefaultDownloaderName: Youtube-dl
-  DefaultDownloadRoot: /downloads
+  DefaultDownloadRoot: /mnt/remotes/Video/科普
+  # 使用代理下载
+  DefaultUseProxy: false
   BiliBiliUserInfos:
     # 这里的 Key 会直接作为下载文件夹
     李永乐:
       UserID: 9458053
-      # DownloadRoot: ./somepath
     回形针PaperClip:
       UserID: 258150656
     柴知道:
@@ -41,8 +42,10 @@ DockerDownloaderInfos:
     DockSSHAddress: 192.168.50.135:22
     DockerUserName: dockeruser
     DockerPassword: password
+    OutSideAPPOrFolderLocation:
+      - /mnt/user/appdata/rssdownloader/youtube-dl
     UpdateCommands:
       - docker pull qmcgaw/youtube-dl-alpine
-      - docker run --rm -e LOG=no -e AUTOUPDATE=yes $ContainerProxy$ -v /mnt/user/appdata/rssdownloader:/downloads -v /mnt/user/appdata/rssdownloader/youtube-dl:/usr/local/bin/youtube-dl qmcgaw/youtube-dl-alpine
+      - docker run --rm --name=youtube-dl-runner -e LOG=no -e AUTOUPDATE=yes $ContainerProxy$ -v $PhysicalMachineDownloadRootPath$:/downloads -v $OutSideAPPOrFolderLocation0$:/usr/local/bin/youtube-dl qmcgaw/youtube-dl-alpine
     DownloadCommands:
-      - docker run --rm -e LOG=no -v $PhysicalMachineDownloadRootPath$:/downloads -v /mnt/user/appdata/rssdownloader/youtube-dl:/usr/local/bin/youtube-dl qmcgaw/youtube-dl-alpine $httpadd$ $downloadURL$ -o "/downloads/$nowFileName$.%(ext)s"
+      - docker run --rm --name=youtube-dl-runner -e LOG=no -v $PhysicalMachineDownloadRootPath$:/downloads -v $OutSideAPPOrFolderLocation0$:/usr/local/bin/youtube-dl qmcgaw/youtube-dl-alpine --proxy=$httpadd$ $downloadURL$ -o "/downloads/$nowFileName$.%(ext)s"

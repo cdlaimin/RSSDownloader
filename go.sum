@@ -40,6 +40,8 @@ github.com/allanpk716/rssdownloader.common v0.0.10 h1:KjM91VGjMggnePrxD+YTJnDtT/
 github.com/allanpk716/rssdownloader.common v0.0.10/go.mod h1:/V5wiTQMIiHMDsk/kTIONIhzPuU+Sw+GNp/i2KtBSuE=
 github.com/allanpk716/rssdownloader.common v0.0.11 h1:EYKGtdQAJSBaq3GUcKAYCtbGf6fRBYBd2z83PwJHstc=
 github.com/allanpk716/rssdownloader.common v0.0.11/go.mod h1:/V5wiTQMIiHMDsk/kTIONIhzPuU+Sw+GNp/i2KtBSuE=
+github.com/allanpk716/rssdownloader.common v0.0.12 h1:7f2qKB3Koow0RsrxWEXFd1aJyUOyYe01UPGdqbhCyhw=
+github.com/allanpk716/rssdownloader.common v0.0.12/go.mod h1:/V5wiTQMIiHMDsk/kTIONIhzPuU+Sw+GNp/i2KtBSuE=
 github.com/andybalholm/cascadia v1.1.0 h1:BuuO6sSfQNFRu1LppgbD25Hr2vLYW25JvxHs5zzsLTo=
 github.com/andybalholm/cascadia v1.1.0/go.mod h1:GsXiBklL0woXo1j/WYWtSYYC4ouU9PqHO0sqidkEA4Y=
 github.com/armon/circbuf v0.0.0-20150827004946-bbbad097214e/go.mod h1:3U/XgcO3hCbHZ8TKRvWD2dDTCfh9M9ya+I9JpbB7O8o=

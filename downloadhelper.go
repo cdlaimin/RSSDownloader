@@ -11,11 +11,12 @@ import (
 	"os"
 	"path"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
 
-func UpdateDockerDownloader(configs model.Configs, dockerDownloaderInfo model.DockerDownloaderInfo) (string, error) {
+func UpdateDockerDownloader(configs model.Configs, downloadRoot string, dockerDownloaderInfo model.DockerDownloaderInfo) (string, error) {
 
 	var err error
 	config := &ssh.ClientConfig{
@@ -39,9 +40,11 @@ func UpdateDockerDownloader(configs model.Configs, dockerDownloaderInfo model.Do
 	assemblyCommand := ""
 	for _, oneCommand := range dockerDownloaderInfo.UpdateCommands {
 		// 替换关键信息
-		tmpCommand := oneCommand
+		tmpCommand := strings.ReplaceAll(oneCommand, ConstPhysicalmachinedownloadrootpath, downloadRoot)
 		ContainerProxy := "-e HTTP_PROXY=" + configs.DownloadHttpProxy
 		tmpCommand = strings.ReplaceAll(tmpCommand, ConstContainerProxy, ContainerProxy)
+
+		tmpCommand = replaceOutSideAPPOrFolderLocation(tmpCommand, dockerDownloaderInfo)
 
 		assemblyCommand += tmpCommand
 		assemblyCommand += ";"
@@ -83,13 +86,15 @@ func OneDownload(nowFileName, downloadURL string, downloadInfo model.DownloadInf
 		nowDesPath := path.Join(downloadInfo.DownloadRoot, downloadInfo.FolderName)
 		tmpCommand := strings.ReplaceAll(oneCommand, ConstPhysicalmachinedownloadrootpath, nowDesPath)
 
-		httpAdd := "--proxy=" + downloadInfo.DownloadHttpProxy
+		httpAdd := downloadInfo.DownloadHttpProxy
 		if downloadInfo.UseProxy == false {
 			httpAdd = ""
 		}
 		tmpCommand = strings.ReplaceAll(tmpCommand, ConstHttpadd, httpAdd)
 		tmpCommand = strings.ReplaceAll(tmpCommand, ConstDownloadurl, downloadURL)
 		tmpCommand = strings.ReplaceAll(tmpCommand, ConstNowfilename, nowFileName)
+
+		tmpCommand = replaceOutSideAPPOrFolderLocation(tmpCommand, dockerDownloaderInfo)
 
 		assemblyCommand += tmpCommand
 		assemblyCommand += ";"
@@ -107,9 +112,18 @@ func MainDownloader(configs model.Configs, rssProxyInfos model.RSSProxyInfos, bi
 
 	// 先进行 downloader 的统一更新
 	log.Infoln("Docker Downloader Update Start")
+
+	updateTmpDownloadRoot := ""
+	if rssProxyInfos.DefaultDownloadRoot != "" {
+		updateTmpDownloadRoot = rssProxyInfos.DefaultDownloadRoot
+	}
+	if biliBiliInfos.DefaultDownloadRoot != "" {
+		updateTmpDownloadRoot = biliBiliInfos.DefaultDownloadRoot
+	}
+
 	for _, dockerDownloaderInfo := range dockerDownloaderInfos {
 		log.Infoln("Update Docker Downloader:", dockerDownloaderInfo.Name, "Start")
-		outstring, err := UpdateDockerDownloader(configs, dockerDownloaderInfo)
+		outstring, err := UpdateDockerDownloader(configs, updateTmpDownloadRoot, dockerDownloaderInfo)
 		if err != nil {
 			log.Errorln("UpdateDockerDownloader OutString:", outstring)
 			log.Errorln("UpdateDockerDownloader:", err)
@@ -119,15 +133,17 @@ func MainDownloader(configs model.Configs, rssProxyInfos model.RSSProxyInfos, bi
 	}
 	log.Infoln("Docker Downloader Update End")
 
-	log.Infoln("Download RSS From RSSProxyInfos")
+	log.Infoln("Download RSS From RSSProxyInfos Start")
 	for _, oneRSSInfos := range rssProxyInfos.RSSInfos {
 		DownloadFromOneFeed(configs, oneRSSInfos)
 	}
+	log.Infoln("Download RSS From RSSProxyInfos End")
 
-	log.Infoln("Download RSS From BiliBiliInfos")
+	log.Infoln("Download RSS From BiliBiliInfos Start")
 	for _, oneBiliBiliUserInfos := range biliBiliInfos.BiliBiliUserInfos {
 		DownloadFromOneFeed(configs, oneBiliBiliUserInfos)
 	}
+	log.Infoln("Download RSS From BiliBiliInfos End")
 }
 
 func SelectDownloadInfo(rssInfo interface{}) (model.DownloadInfo, error) {
@@ -252,9 +268,20 @@ func StartDownload(item *gofeed.Item, downloadInfo model.DownloadInfo) {
 	log.Infoln("Download", nowVideoName, "End")
 }
 
+// 替换 OutSideAPPOrFolderLocation
+func replaceOutSideAPPOrFolderLocation(tmpCommand string, dockerDownloaderInfo model.DockerDownloaderInfo) string {
+	for index, one := range dockerDownloaderInfo.OutSideAPPOrFolderLocation {
+		nowReplaceKeyWord := strings.ReplaceAll(ConstOutSideAPPOrFolderLocation, "n$", "n" + strconv.Itoa(index) + "$")
+		tmpCommand = strings.ReplaceAll(tmpCommand, nowReplaceKeyWord, one)
+	}
+
+	return tmpCommand
+}
+
 const ConstYoutudlfileextension = ".part"
 const ConstPhysicalmachinedownloadrootpath = "$PhysicalMachineDownloadRootPath$"
 const ConstHttpadd = "$httpadd$"
 const ConstContainerProxy = "$ContainerProxy$"
 const ConstDownloadurl = "$downloadURL$"
 const ConstNowfilename = "$nowFileName$"
+const ConstOutSideAPPOrFolderLocation = "$OutSideAPPOrFolderLocation$"

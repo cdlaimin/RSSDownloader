@@ -1,3 +1,43 @@
+- [RSSDownloader](#rssdownloader)
+  * [Why？](#why-)
+  * [目的](#--)
+  * [特性](#--)
+  * [程序设计思路](#------)
+    + [为什么会出现 RSSProxy 以及两个 RSSHub？](#-------rssproxy------rsshub-)
+    + [为何下载部分要分开使用额外的 docker 容器？](#---------------docker----)
+  * [如何使用](#----)
+    + [RSSProxy 设置](#rssproxy---)
+    + [RSSDownloader 设置](#rssdownloader---)
+      - [基础配置](#----)
+        * [ListenPort](#listenport)
+        * [DownloadHttpProxy](#downloadhttpproxy)
+        * [RSSHubAddress](#rsshubaddress)
+        * [RSSProxyAddress](#rssproxyaddress)
+        * [ReadRSSTimeOut](#readrsstimeout)
+        * [EveryTime](#everytime)
+      - [RSSProxyInfos 设置](#rssproxyinfos---)
+        * [DefaultDownloaderName](#defaultdownloadername)
+        * [DefaultDownloadRoot](#defaultdownloadroot)
+        * [DefaultUseProxy](#defaultuseproxy)
+        * [RSSInfos](#rssinfos)
+      - [BiliBiliInfos 设置](#bilibiliinfos---)
+        * [DefaultDownloaderName](#defaultdownloadername-1)
+        * [DefaultDownloadRoot](#defaultdownloadroot-1)
+        * [DefaultUseProxy](#defaultuseproxy-1)
+        * [BiliBiliUserInfos](#bilibiliuserinfos)
+      - [DockerDownloaderInfos 设置](#dockerdownloaderinfos---)
+        * [ContainerProxy](#containerproxy)
+        * [PhysicalMachineDownloadRootPath](#physicalmachinedownloadrootpath)
+        * [OutSideAPPOrFolderLocation](#outsideapporfolderlocation)
+        * [httpadd](#httpadd)
+        * [downloadURL](#downloadurl)
+        * [nowFileName](#nowfilename)
+    + [Docker 部署](#docker---)
+  * [项目规划、进度](#-------)
+  * [感谢](#--)
+
+<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
+
 # RSSDownloader
 
 ## Why？
@@ -86,6 +126,8 @@ RSSHub 的使用请去看对应的官网文档。
 ### RSSDownloader 设置
 
 #### 基础配置
+
+基本的配置信息如下图：
 
 ![RSSDownloader-Setting](Pics/RSSDownloader-Setting.png)
 
@@ -178,12 +220,93 @@ RSSProxy 的地址
 这里的 Key 是 Youtube-dl，上面的设置使用默认下载器的时候用到了。
 
 * DockSSHAddress：因为使用的是 SSH 去启动物理机的 docker 的，所以需要设置物理机的 SSH 连接
+
 * DockerUserName：有 docker 权限的账户，且你的下载地址也得有对应的权限
+
 * DockerPassword：密码
+
 * UpdateCommands：连接 SSH 执行的更新用的命令，为了更新你的下载器
+
 * DownloadCommands：下载器 docker 使用的命令
 
+* OutSideAPPOrFolderLocation：这里可以动态的指定多个需要外部映射可执行程序或者是文件夹路径。
+
 这里的设置用到的 $xxx$ 的变量是 RSSDownloader 使用的内置变量，不要改。
+
+注意，这里设置 docker 的 name 为 youtube-dl-runner，是为了，如果本程序故障的时候，重复启动的时候，如果发现上一个 docker 下载器启动了没有推出就不重复启动了，不然会出问题。
+
+**有几个特殊的内置字段需要注意下**：
+
+##### ContainerProxy
+
+这个与 DownloadHttpProxy 一致，会被替换，一般是为了 docker 内程序更新使用的，因为国内嘛，你懂。
+
+##### PhysicalMachineDownloadRootPath
+
+跟相应资源的 DefaultDownloadRoot 一致，会自动替换。
+
+##### OutSideAPPOrFolderLocation
+
+这个可以设置多个值，然后替换的时候是以每一个 command 中，指定对应的顺序。举例：
+
+设置了：
+
+```
+OutSideAPPOrFolderLocation:
+	- /mnt/user/appdata/rssdownloader/abc
+	- /mnt/user/appdata/rssdownloader/haha
+```
+
+然后执行的命令有：
+
+```
+- docker run --rm -v $OutSideAPPOrFolderLocation0$:/downloads -v $OutSideAPPOrFolderLocation1$:/usr/local/bin/youtube-dl qmcgaw/youtube-dl-alpine
+```
+
+那么对应的：
+
+* $OutSideAPPOrFolderLocation0$ = /mnt/user/appdata/rssdownloader/abc
+* $OutSideAPPOrFolderLocation1$ = /mnt/user/appdata/rssdownloader/haha
+
+如果执行的命令是：
+
+```
+- docker run --rm -v $OutSideAPPOrFolderLocation1$:/downloads -v $OutSideAPPOrFolderLocation0$:/usr/local/bin/youtube-dl qmcgaw/youtube-dl-alpine
+```
+
+那么其实对应的值也**一样**的，只不过在命令中换了个位置。
+
+##### httpadd
+
+这个是 youtube-dl 的代理设置，这个与 DownloadHttpProxy 一致，会被替换，一般是为了 docker 内程序更新使用的，因为国内嘛，你懂。
+
+##### downloadURL
+
+需要下载的资源的 URL，这个是 RSS 中解析出来的，无需改动。
+
+##### nowFileName
+
+需要将下载的资源重命名为什么名称，不包含后缀名，因为会有对应的下载程序决定。
+
+这里默认是 **2021-02-06_VideoTitle** 这样的格式。无需修改。
+
+注意，这里一定要用这个命名的格式，不然前面的检测是否下载过的逻辑会出问题，虽然问题不大，正常会有下载程序判断是否下载过了会跳过。
+
+### Docker 部署
+
+参考以下的 docker-compose
+
+```yaml
+version: "3"
+services:
+  service_rssdownloader:
+    image: allanpk716/rssdownloader:latest
+    container_name: rssdownloader
+    ports:
+      - 1202:1200
+    volumes:
+      - /mnt/user/appdata/rssdownloader/config.yaml:/app/config.yaml
+```
 
 ## 项目规划、进度
 

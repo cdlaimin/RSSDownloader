@@ -101,6 +101,7 @@ func ViperConfig2Cache(config *viper.Viper, configs *model.Configs,
 		downloaderInfo.Name = k
 		downloaderInfo.UpdateCommands = config.GetStringSlice("DockerDownloaderInfos."+ k +".UpdateCommands")
 		downloaderInfo.DownloadCommands = config.GetStringSlice("DockerDownloaderInfos."+ k +".DownloadCommands")
+		downloaderInfo.OutSideAPPOrFolderLocation = config.GetStringSlice("DockerDownloaderInfos."+ k +".OutSideAPPOrFolderLocation")
 		dockerDownloaderInfos[k] = downloaderInfo
 	}
 	// ------------------------------------------------------------
