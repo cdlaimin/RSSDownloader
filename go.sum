@@ -42,11 +42,14 @@ github.com/allanpk716/rssdownloader.common v0.0.11 h1:EYKGtdQAJSBaq3GUcKAYCtbGf6
 github.com/allanpk716/rssdownloader.common v0.0.11/go.mod h1:/V5wiTQMIiHMDsk/kTIONIhzPuU+Sw+GNp/i2KtBSuE=
 github.com/allanpk716/rssdownloader.common v0.0.12 h1:7f2qKB3Koow0RsrxWEXFd1aJyUOyYe01UPGdqbhCyhw=
 github.com/allanpk716/rssdownloader.common v0.0.12/go.mod h1:/V5wiTQMIiHMDsk/kTIONIhzPuU+Sw+GNp/i2KtBSuE=
+github.com/allanpk716/rssdownloader.common v0.0.13 h1:T09eeNtch0J9vgbVl63kvNXzjsK6wR+yh9wINkUcT5c=
+github.com/allanpk716/rssdownloader.common v0.0.13/go.mod h1:2GzVA472cRR6suhzMfHNe+xjL7HyJKVgw5RRUnO3D+c=
 github.com/andybalholm/cascadia v1.1.0 h1:BuuO6sSfQNFRu1LppgbD25Hr2vLYW25JvxHs5zzsLTo=
 github.com/andybalholm/cascadia v1.1.0/go.mod h1:GsXiBklL0woXo1j/WYWtSYYC4ouU9PqHO0sqidkEA4Y=
 github.com/armon/circbuf v0.0.0-20150827004946-bbbad097214e/go.mod h1:3U/XgcO3hCbHZ8TKRvWD2dDTCfh9M9ya+I9JpbB7O8o=
 github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da/go.mod h1:Q73ZrmVTwzkszR9V5SSuryQ31EELlFMUz1kKyl939pY=
 github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgIH9cCH8=
+github.com/axgle/mahonia v0.0.0-20180208002826-3358181d7394/go.mod h1:Q8n74mJTIgjX4RBBcHnJ05h//6/k6foqmgE45jTQtxg=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=

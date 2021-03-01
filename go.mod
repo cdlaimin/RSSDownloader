@@ -3,7 +3,7 @@ module github.com/allanpk716/rssdownloader
 go 1.14
 
 require (
-	github.com/allanpk716/rssdownloader.common v0.0.12
+	github.com/allanpk716/rssdownloader.common v0.0.13
 	github.com/bitfield/script v0.18.0
 	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-gonic/gin v1.5.0
